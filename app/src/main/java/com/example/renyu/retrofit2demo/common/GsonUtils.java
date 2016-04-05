@@ -33,13 +33,6 @@ public class GsonUtils {
         return builder.create();
     }
 
-    public static <T>T getModelValue(String string, Class<T> class_) {
-        Response response;
-        Type objectTypes= GsonUtils.type(Response.class, class_);
-        response=GsonUtils.getGson().fromJson(string, objectTypes);
-        return (T) response.getData();
-    }
-
     public static <T>List<T> getModelListValue(String string, Class<T> class_) {
         ResponseList response;
         Type objectTypes= GsonUtils.type(ResponseList.class, class_);
