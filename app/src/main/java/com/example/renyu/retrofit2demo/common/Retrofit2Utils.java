@@ -50,7 +50,7 @@ public class Retrofit2Utils {
      * 设置缓存
      * @param flag
      */
-    public void enableCache(boolean flag) {
+    public Retrofit2Utils enableCache(boolean flag) {
         if (flag) {
             //缓存拦截器
             okhttpBuilder.addInterceptor(new CacheInterceptor())
@@ -59,6 +59,7 @@ public class Retrofit2Utils {
                     .cache(new Cache(new File(Environment.getExternalStorageDirectory().getPath() + "/retrofit2demo"), 1024 * 1024 * 100));
             okhttpBuilder.interceptors().add(new CacheInterceptor());
         }
+        return instance;
     }
 
     public <T> Retrofit getListRetrofit(String baseUrl, Class<T> class_) {

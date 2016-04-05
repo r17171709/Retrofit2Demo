@@ -53,16 +53,16 @@ public class MainActivity extends AppCompatActivity {
             file.mkdirs();
         }
 
-//        getDemo();
-//        postDemo();
+        getDemo();
+        postDemo();
 //        getWithPathDemo();
 //        uploadFile();
 //        getGames();
-        downloadDemo();
+//        downloadDemo();
     }
 
     private void getDemo() {
-        WeatherApi api = Retrofit2Utils.getInstance(getApplicationContext()).getRetrofit("http://apis.baidu.com/apistore/").create(WeatherApi.class);
+        WeatherApi api = Retrofit2Utils.getInstance(getApplicationContext()).enableCache(true).getRetrofit("http://apis.baidu.com/apistore/").create(WeatherApi.class);
         subscription = api.getWeatherModels("a7802d983b3d58ed6e70ed71bb0c7f14", "南京")
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
