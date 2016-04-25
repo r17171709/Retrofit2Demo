@@ -14,10 +14,6 @@ public class RequestInterceptor implements Interceptor {
 
     private final String mApiKey = "111111";
 
-    public RequestInterceptor() {
-
-    }
-
     @Override
     public Response intercept(Interceptor.Chain chain) throws IOException {
         Request oldRequest = chain.request();
@@ -28,15 +24,15 @@ public class RequestInterceptor implements Interceptor {
                 .host(oldRequest.url().host())
                 .addQueryParameter("mApiKey", mApiKey);
 
-        // 新的请求
+        // 重新组成新的请求
         Request newRequest = oldRequest.newBuilder()
                 .method(oldRequest.method(), oldRequest.body())
                 .url(authorizedUrlBuilder.build())
-                .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-                .addHeader("Accept-Encoding", "gzip, deflate")
-                .addHeader("Connection", "keep-alive")
-                .addHeader("Accept", "*/*")
-                .addHeader("Cookie", "add cookies here")
+//                .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+//                .addHeader("Accept-Encoding", "gzip, deflate")
+//                .addHeader("Connection", "keep-alive")
+//                .addHeader("Accept", "*/*")
+//                .addHeader("Cookie", "add cookies here")
                 .build();
 
         return chain.proceed(newRequest);

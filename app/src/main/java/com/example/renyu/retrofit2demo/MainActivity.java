@@ -5,17 +5,20 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.example.renyu.retrofit2demo.common.RequestInterceptor;
 import com.example.renyu.retrofit2demo.common.Retrofit2Utils;
 import com.example.renyu.retrofit2demo.impl.FileDownloadApi;
 import com.example.renyu.retrofit2demo.impl.FileUploadApi;
 import com.example.renyu.retrofit2demo.impl.GameApi;
 import com.example.renyu.retrofit2demo.impl.GankioApi;
 import com.example.renyu.retrofit2demo.impl.MovieApi;
+import com.example.renyu.retrofit2demo.impl.SendMessageApi;
 import com.example.renyu.retrofit2demo.impl.WeatherApi;
 import com.example.renyu.retrofit2demo.model.GameModel;
 import com.example.renyu.retrofit2demo.model.GankioModel;
 import com.example.renyu.retrofit2demo.model.MovieModel;
 import com.example.renyu.retrofit2demo.model.MoviePostModel;
+import com.example.renyu.retrofit2demo.model.SendMessageModel;
 import com.example.renyu.retrofit2demo.model.WeatherModel;
 
 import java.io.File;
@@ -37,6 +40,7 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
@@ -53,16 +57,49 @@ public class MainActivity extends AppCompatActivity {
             file.mkdirs();
         }
 
-        getDemo();
-        postDemo();
+        //Get请求范例
+//        getDemo();
+        //Post请求范例
+//        postDemo();
+        //Get请求范例
 //        getWithPathDemo();
+        //上传文件范例
 //        uploadFile();
+        //自定义解析范例
 //        getGames();
+        //文件下载范例
 //        downloadDemo();
+        //通用参数设置范例
+        commonRequest();
+    }
+
+
+    private void commonRequest() {
+        SendMessageApi api=Retrofit2Utils.getInstance(this).addExtraInterceptor(new RequestInterceptor()).getRetrofit("http://zk.house365.com:8008/").create(SendMessageApi.class);
+        subscription = api.getSendMessage("Api/SVTask/sendMessage", "84", "195", "SB")
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .unsubscribeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<SendMessageModel>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                    }
+
+                    @Override
+                    public void onNext(SendMessageModel sendMessageModel) {
+                        Log.d("MainActivity", sendMessageModel.getData().getMsg());
+                    }
+                });
     }
 
     private void getDemo() {
-        WeatherApi api = Retrofit2Utils.getInstance(getApplicationContext()).enableCache(true).getRetrofit("http://apis.baidu.com/apistore/").create(WeatherApi.class);
+        WeatherApi api = Retrofit2Utils.getInstance(getApplicationContext()).enableCache(false).getRetrofit("http://apis.baidu.com/apistore/").create(WeatherApi.class);
         subscription = api.getWeatherModels("a7802d983b3d58ed6e70ed71bb0c7f14", "南京")
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

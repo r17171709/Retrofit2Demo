@@ -7,7 +7,9 @@ import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Cache;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -25,9 +27,13 @@ public class Retrofit2Utils {
     static OkHttpClient.Builder okhttpBuilder;
     //Retrofit build对象
     Retrofit.Builder retrofitBuilder;
+    //日志拦截器
+    static HttpLoggingInterceptor interceptor;
 
     private Retrofit2Utils() {
         retrofitBuilder=new Retrofit.Builder().addCallAdapterFactory(RxJavaCallAdapterFactory.create());
+        interceptor=new HttpLoggingInterceptor();
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
     }
 
     public synchronized static Retrofit2Utils getInstance(Context context_) {
@@ -43,6 +49,7 @@ public class Retrofit2Utils {
                 .readTimeout(10, TimeUnit.SECONDS)
                 .writeTimeout(10, TimeUnit.SECONDS)
                 .connectTimeout(10, TimeUnit.SECONDS);
+        okhttpBuilder.addInterceptor(interceptor);
         return instance;
     }
 
@@ -59,6 +66,16 @@ public class Retrofit2Utils {
                     .cache(new Cache(new File(Environment.getExternalStorageDirectory().getPath() + "/retrofit2demo"), 1024 * 1024 * 100));
             okhttpBuilder.interceptors().add(new CacheInterceptor());
         }
+        return instance;
+    }
+
+    /**
+     * 添加额外的拦截器
+     * @param interceptor
+     * @return
+     */
+    public Retrofit2Utils addExtraInterceptor(Interceptor interceptor) {
+        okhttpBuilder.interceptors().add(interceptor);
         return instance;
     }
 
