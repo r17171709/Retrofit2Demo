@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.example.renyu.retrofit2demo.common.ProgressRequestBody;
 import com.example.renyu.retrofit2demo.common.RequestInterceptor;
 import com.example.renyu.retrofit2demo.common.Retrofit2Utils;
 import com.example.renyu.retrofit2demo.impl.FileDownloadApi;
@@ -31,6 +32,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.MediaType;
+import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -64,13 +66,13 @@ public class MainActivity extends AppCompatActivity {
         //Get请求范例
 //        getWithPathDemo();
         //上传文件范例
-//        uploadFile();
+        uploadFile();
         //自定义解析范例
 //        getGames();
         //文件下载范例
 //        downloadDemo();
         //通用参数设置范例
-        commonRequest();
+//        commonRequest();
     }
 
 
@@ -180,12 +182,17 @@ public class MainActivity extends AppCompatActivity {
 
     private void uploadFile() {
         String token = "09oMsbnJYREss4vRGdGeurO-C7WhTPHnlLyy-6e5:J8V1qHXvDR51PDN5YaAqHIh9eHc=:eyJzY29wZSI6ImFwcGltYWdlIiwiY2FsbGJhY2tVcmwiOiJodHRwOi8vYXBwYXBpLmlpdGUuY2M6ODA4MC9pdGVldGgvY29tbW9uL3Fpbml1Y2FsbGJhY2siLCJkZWFkbGluZSI6MTc3NDA5OTQ2NCwiY2FsbGJhY2tCb2R5Ijoia2V5XHUwMDNkJChrZXkpXHUwMDI2aGFzaFx1MDAzZCQoZXRhZylcdTAwMjZqc29uQm9keVx1MDAzZCQoeDpqc29uQm9keSkifQ==";
-        FileUploadApi api = Retrofit2Utils.getInstance(this).getRetrofit("http://upload.qiniu.com/").create(FileUploadApi.class);
         Map<String, RequestBody> params = new HashMap<>();
         RequestBody body = RequestBody.create(MediaType.parse("image/jpeg"), new File(Environment.getExternalStorageDirectory().getPath() + "/PictureTest/saveTemp.jpg"));
-        params.put("file", body);
+        params.put("file", new ProgressRequestBody(body, new ProgressRequestBody.OkHttpProgressListener() {
+            @Override
+            public void onProgress(long currentBytesCount, long totalBytesCount) {
+                Log.d("MainActivity", currentBytesCount + " " + totalBytesCount);
+            }
+        }));
         params.put("token", RequestBody.create(MediaType.parse("text/plain"), token));
         params.put("x:jsonbody", RequestBody.create(MediaType.parse("text/plain"), "{}"));
+        FileUploadApi api = Retrofit2Utils.getInstance(this).getRetrofit("http://upload.qiniu.com/").create(FileUploadApi.class);
         api.uploadImage(params).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -204,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void getGames() {
-        GameApi api = Retrofit2Utils.getInstance(getApplicationContext()).getListRetrofit("http://nbaplus.sinaapp.com", GameModel.class).create(GameApi.class);
+        GameApi api = Retrofit2Utils.getInstance(getApplicationContext()).addExtraInterceptor(new RequestInterceptor()).getListRetrofit("http://nbaplus.sinaapp.com", GameModel.class).create(GameApi.class);
         api.getGames("2016-04-04")
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

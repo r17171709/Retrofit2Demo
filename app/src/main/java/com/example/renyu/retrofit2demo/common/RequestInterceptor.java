@@ -1,5 +1,7 @@
 package com.example.renyu.retrofit2demo.common;
 
+import android.util.Log;
+
 import java.io.IOException;
 
 import okhttp3.HttpUrl;
@@ -34,7 +36,8 @@ public class RequestInterceptor implements Interceptor {
 //                .addHeader("Accept", "*/*")
 //                .addHeader("Cookie", "add cookies here")
                 .build();
-
-        return chain.proceed(newRequest);
+        Response response=chain.proceed(newRequest);
+        Log.d("RequestInterceptor", "response.code():" + response.code());
+        return response;
     }
 }
