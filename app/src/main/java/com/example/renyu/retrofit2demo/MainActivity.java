@@ -12,9 +12,11 @@ import com.example.renyu.retrofit2demo.impl.FileDownloadApi;
 import com.example.renyu.retrofit2demo.impl.FileUploadApi;
 import com.example.renyu.retrofit2demo.impl.GameApi;
 import com.example.renyu.retrofit2demo.impl.GankioApi;
+import com.example.renyu.retrofit2demo.impl.HomePageByBranchIdApi;
 import com.example.renyu.retrofit2demo.impl.MovieApi;
 import com.example.renyu.retrofit2demo.impl.SendMessageApi;
 import com.example.renyu.retrofit2demo.impl.WeatherApi;
+import com.example.renyu.retrofit2demo.model.BranchInfoModel;
 import com.example.renyu.retrofit2demo.model.GameModel;
 import com.example.renyu.retrofit2demo.model.GankioModel;
 import com.example.renyu.retrofit2demo.model.MovieModel;
@@ -66,18 +68,20 @@ public class MainActivity extends AppCompatActivity {
         //Get请求范例
 //        getWithPathDemo();
         //上传文件范例
-        uploadFile();
+//        uploadFile();
         //自定义解析范例
 //        getGames();
         //文件下载范例
 //        downloadDemo();
         //通用参数设置范例
 //        commonRequest();
+        getHomePageByBranchIdApi();
     }
 
-
     private void commonRequest() {
-        SendMessageApi api=Retrofit2Utils.getInstance(this).addExtraInterceptor(new RequestInterceptor()).getRetrofit("http://zk.house365.com:8008/").create(SendMessageApi.class);
+        Retrofit2Utils retrofit2Utils=new Retrofit2Utils();
+        retrofit2Utils.addExtraInterceptor(new RequestInterceptor());
+        SendMessageApi api=retrofit2Utils.getRetrofit("http://zk.house365.com:8008/").create(SendMessageApi.class);
         subscription = api.getSendMessage("Api/SVTask/sendMessage", "84", "195", "SB")
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -101,7 +105,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getDemo() {
-        WeatherApi api = Retrofit2Utils.getInstance(getApplicationContext()).enableCache(false).getRetrofit("http://apis.baidu.com/apistore/").create(WeatherApi.class);
+        Retrofit2Utils retrofit2Utils=new Retrofit2Utils();
+        retrofit2Utils.enableCache(false, this);
+        WeatherApi api = retrofit2Utils.getRetrofit("http://apis.baidu.com/apistore/").create(WeatherApi.class);
         subscription = api.getWeatherModels("a7802d983b3d58ed6e70ed71bb0c7f14", "南京")
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -127,7 +133,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void postDemo() {
-        MovieApi api = Retrofit2Utils.getInstance(getApplicationContext()).getRetrofit("http://apis.baidu.com/baidu_openkg/").create(MovieApi.class);
+        Retrofit2Utils retrofit2Utils=new Retrofit2Utils();
+        MovieApi api = retrofit2Utils.getRetrofit("http://apis.baidu.com/baidu_openkg/").create(MovieApi.class);
         MoviePostModel postModel = new MoviePostModel();
         postModel.setQuery("虎妈猫爸的最新剧集");
         postModel.setResource("video_haiou");
@@ -153,7 +160,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getWithPathDemo() {
-        GankioApi api = Retrofit2Utils.getInstance(getApplicationContext()).getRetrofit("http://gank.io/api/data/").create(GankioApi.class);
+        Retrofit2Utils retrofit2Utils=new Retrofit2Utils();
+        GankioApi api = retrofit2Utils.getRetrofit("http://gank.io/api/data/").create(GankioApi.class);
         api.getGankioModels("Android", 10, 1)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -176,10 +184,6 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    private void getHtmlDemo() {
-
-    }
-
     private void uploadFile() {
         String token = "09oMsbnJYREss4vRGdGeurO-C7WhTPHnlLyy-6e5:J8V1qHXvDR51PDN5YaAqHIh9eHc=:eyJzY29wZSI6ImFwcGltYWdlIiwiY2FsbGJhY2tVcmwiOiJodHRwOi8vYXBwYXBpLmlpdGUuY2M6ODA4MC9pdGVldGgvY29tbW9uL3Fpbml1Y2FsbGJhY2siLCJkZWFkbGluZSI6MTc3NDA5OTQ2NCwiY2FsbGJhY2tCb2R5Ijoia2V5XHUwMDNkJChrZXkpXHUwMDI2aGFzaFx1MDAzZCQoZXRhZylcdTAwMjZqc29uQm9keVx1MDAzZCQoeDpqc29uQm9keSkifQ==";
         Map<String, RequestBody> params = new HashMap<>();
@@ -192,7 +196,8 @@ public class MainActivity extends AppCompatActivity {
         }));
         params.put("token", RequestBody.create(MediaType.parse("text/plain"), token));
         params.put("x:jsonbody", RequestBody.create(MediaType.parse("text/plain"), "{}"));
-        FileUploadApi api = Retrofit2Utils.getInstance(this).getRetrofit("http://upload.qiniu.com/").create(FileUploadApi.class);
+        Retrofit2Utils retrofit2Utils=new Retrofit2Utils();
+        FileUploadApi api = retrofit2Utils.getRetrofit("http://upload.qiniu.com/").create(FileUploadApi.class);
         api.uploadImage(params).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -211,7 +216,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void getGames() {
-        GameApi api = Retrofit2Utils.getInstance(getApplicationContext()).addExtraInterceptor(new RequestInterceptor()).getListRetrofit("http://nbaplus.sinaapp.com", GameModel.class).create(GameApi.class);
+        Retrofit2Utils retrofit2Utils=new Retrofit2Utils();
+        retrofit2Utils.addExtraInterceptor(new RequestInterceptor());
+        GameApi api = retrofit2Utils.getListRetrofit("http://nbaplus.sinaapp.com", GameModel.class).create(GameApi.class);
         api.getGames("2016-04-04")
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -238,7 +245,8 @@ public class MainActivity extends AppCompatActivity {
     FileOutputStream fos;
 
     public void downloadDemo() {
-        final FileDownloadApi api = Retrofit2Utils.getInstance(getApplicationContext()).getRetrofit("http://7b1g8u.com1.z0.glb.clouddn.com").create(FileDownloadApi.class);
+        Retrofit2Utils retrofit2Utils=new Retrofit2Utils();
+        final FileDownloadApi api = retrofit2Utils.getRetrofit("http://7b1g8u.com1.z0.glb.clouddn.com").create(FileDownloadApi.class);
         Observable.create(new Observable.OnSubscribe<String>() {
             @Override
             public void call(Subscriber<? super String> subscriber) {
@@ -318,5 +326,27 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         if (subscription != null)
             subscription.unsubscribe();
+    }
+
+    public void getHomePageByBranchIdApi() {
+        Retrofit2Utils retrofit2Utils=new Retrofit2Utils();
+        retrofit2Utils.addExtraInterceptor(new RequestInterceptor());
+        HomePageByBranchIdApi api = retrofit2Utils.getListRetrofit("https://api.life.youlanw.com/", BranchInfoModel.class).create(HomePageByBranchIdApi.class);
+        api.getHomePageByBranchId().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<List<BranchInfoModel>>() {
+            @Override
+            public void onCompleted() {
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onNext(List<BranchInfoModel> branchInfoModels) {
+                Log.d("MainActivity", "branchInfoModels.size():" + branchInfoModels.size());
+            }
+        });
     }
 }

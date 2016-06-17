@@ -15,18 +15,25 @@ import okhttp3.Response;
  * Created by RG on 2016/3/27.
  */
 public class CacheInterceptor implements Interceptor {
+
+    Context context;
+
+    public CacheInterceptor(Context context) {
+        this.context=context;
+    }
+
     @Override
     public Response intercept(Interceptor.Chain chain) throws IOException {
         Request request = chain.request();
         //如果没有网络，则启用 FORCE_CACHE
-        if(!isNetworkConnected()) {
+        if(!isNetworkConnected(context)) {
             request = request.newBuilder()
                     .cacheControl(CacheControl.FORCE_CACHE)
                     .build();
         }
 
         Response originalResponse = chain.proceed(request);
-        if(isNetworkConnected()) {
+        if(isNetworkConnected(context)) {
             //有网的时候读接口上的@Headers里的配置
             String cacheControl = request.cacheControl().toString();
             return originalResponse.newBuilder()
@@ -41,8 +48,7 @@ public class CacheInterceptor implements Interceptor {
         }
     }
 
-    public static boolean isNetworkConnected() {
-        Context context = Retrofit2Utils.context;
+    public static boolean isNetworkConnected(Context context) {
         if (context != null) {
             ConnectivityManager mConnectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo mNetworkInfo = mConnectivityManager.getActiveNetworkInfo();

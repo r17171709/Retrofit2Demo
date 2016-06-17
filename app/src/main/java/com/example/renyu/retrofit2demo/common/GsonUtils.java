@@ -39,4 +39,11 @@ public class GsonUtils {
         response=GsonUtils.getGson().fromJson(string, objectTypes);
         return response.getData();
     }
+
+    public static <T>List<T> getModelListValue2(String string, Class<T> class_) {
+        ResponseList2 response;
+        Type objectTypes= GsonUtils.type(ResponseList2.class, class_);
+        response=GsonUtils.getGson().fromJson(string, objectTypes);
+        return response.getData();
+    }
 }

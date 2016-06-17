@@ -21,7 +21,7 @@ public class ListGsonResponseBodyConverter<T> implements Converter<ResponseBody,
     }
 
     @Override public List<T> convert(ResponseBody value) throws IOException {
-        List<T> models=GsonUtils.getModelListValue(value.string(), class_);
+        List<T> models=GsonUtils.getModelListValue2(value.string(), class_);
         value.close();
         return models;
     }

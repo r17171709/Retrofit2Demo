@@ -19,54 +19,37 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 public class Retrofit2Utils {
 
-    public static Context context;
-
-    private static Retrofit2Utils instance;
-
     //okhttp build对象
-    static OkHttpClient.Builder okhttpBuilder;
+    private OkHttpClient.Builder okhttpBuilder;
     //Retrofit build对象
-    Retrofit.Builder retrofitBuilder;
+    private Retrofit.Builder retrofitBuilder;
     //日志拦截器
-    static HttpLoggingInterceptor interceptor;
+    private HttpLoggingInterceptor interceptor;
 
-    private Retrofit2Utils() {
+    public Retrofit2Utils() {
         retrofitBuilder=new Retrofit.Builder().addCallAdapterFactory(RxJavaCallAdapterFactory.create());
         interceptor=new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
-    }
-
-    public synchronized static Retrofit2Utils getInstance(Context context_) {
-        if (instance==null) {
-            synchronized (Retrofit2Utils.class) {
-                if (instance==null) {
-                    context=context_;
-                    instance=new Retrofit2Utils();
-                }
-            }
-        }
         okhttpBuilder=new OkHttpClient.Builder()
                 .readTimeout(10, TimeUnit.SECONDS)
                 .writeTimeout(10, TimeUnit.SECONDS)
                 .connectTimeout(10, TimeUnit.SECONDS);
         okhttpBuilder.addInterceptor(interceptor);
-        return instance;
     }
 
     /**
      * 设置缓存
      * @param flag
      */
-    public Retrofit2Utils enableCache(boolean flag) {
+    public void enableCache(boolean flag, Context context) {
         if (flag) {
             //缓存拦截器
-            okhttpBuilder.addInterceptor(new CacheInterceptor())
-                    .addNetworkInterceptor(new CacheInterceptor())
+            okhttpBuilder.addInterceptor(new CacheInterceptor(context))
+                    .addNetworkInterceptor(new CacheInterceptor(context))
                     //设置缓存路径以及大小
                     .cache(new Cache(new File(Environment.getExternalStorageDirectory().getPath() + "/retrofit2demo"), 1024 * 1024 * 100));
-            okhttpBuilder.interceptors().add(new CacheInterceptor());
+            okhttpBuilder.interceptors().add(new CacheInterceptor(context));
         }
-        return instance;
     }
 
     /**
@@ -74,9 +57,8 @@ public class Retrofit2Utils {
      * @param interceptor
      * @return
      */
-    public Retrofit2Utils addExtraInterceptor(Interceptor interceptor) {
+    public void addExtraInterceptor(Interceptor interceptor) {
         okhttpBuilder.interceptors().add(interceptor);
-        return instance;
     }
 
     public <T> Retrofit getListRetrofit(String baseUrl, Class<T> class_) {
