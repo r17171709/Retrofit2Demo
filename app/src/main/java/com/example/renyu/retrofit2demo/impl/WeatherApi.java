@@ -20,4 +20,10 @@ public interface WeatherApi {
      */
     @GET("weatherservice/cityname")
     Observable<WeatherModel> getWeatherModels(@Header("apikey") String apikey, @Query("cityname") String cityname);
+
+    @GET("weatherservice/cityname")
+    Observable<WeatherModel> getWeatherModels(@Query("cityname") String cityname);
+
+    @GET("weatherservice/cityname")
+    Observable<WeatherModel> getWeatherModels();
 }

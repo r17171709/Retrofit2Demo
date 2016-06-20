@@ -15,6 +15,7 @@ import com.example.renyu.retrofit2demo.impl.GankioApi;
 import com.example.renyu.retrofit2demo.impl.HomePageByBranchIdApi;
 import com.example.renyu.retrofit2demo.impl.MovieApi;
 import com.example.renyu.retrofit2demo.impl.SendMessageApi;
+import com.example.renyu.retrofit2demo.impl.UpdateApi;
 import com.example.renyu.retrofit2demo.impl.WeatherApi;
 import com.example.renyu.retrofit2demo.model.BranchInfoModel;
 import com.example.renyu.retrofit2demo.model.GameModel;
@@ -22,6 +23,7 @@ import com.example.renyu.retrofit2demo.model.GankioModel;
 import com.example.renyu.retrofit2demo.model.MovieModel;
 import com.example.renyu.retrofit2demo.model.MoviePostModel;
 import com.example.renyu.retrofit2demo.model.SendMessageModel;
+import com.example.renyu.retrofit2demo.model.UpdateModel;
 import com.example.renyu.retrofit2demo.model.WeatherModel;
 
 import java.io.File;
@@ -34,7 +36,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.MediaType;
-import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -44,7 +45,6 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
@@ -75,12 +75,13 @@ public class MainActivity extends AppCompatActivity {
 //        downloadDemo();
         //通用参数设置范例
 //        commonRequest();
-        getHomePageByBranchIdApi();
+//        getHomePageByBranchIdApi();
+        //通过拦截器添加数据
+        addInterceptorParams();
     }
 
     private void commonRequest() {
         Retrofit2Utils retrofit2Utils=new Retrofit2Utils();
-        retrofit2Utils.addExtraInterceptor(new RequestInterceptor());
         SendMessageApi api=retrofit2Utils.getRetrofit("http://zk.house365.com:8008/").create(SendMessageApi.class);
         subscription = api.getSendMessage("Api/SVTask/sendMessage", "84", "195", "SB")
                 .subscribeOn(Schedulers.io())
@@ -120,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(Throwable e) {
-
+                        e.printStackTrace();
                     }
 
                     @Override
@@ -149,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onError(Throwable e) {
-
+                        e.printStackTrace();
                     }
 
                     @Override
@@ -330,7 +331,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void getHomePageByBranchIdApi() {
         Retrofit2Utils retrofit2Utils=new Retrofit2Utils();
-        retrofit2Utils.addExtraInterceptor(new RequestInterceptor());
         HomePageByBranchIdApi api = retrofit2Utils.getListRetrofit("https://api.life.youlanw.com/", BranchInfoModel.class).create(HomePageByBranchIdApi.class);
         api.getHomePageByBranchId().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<List<BranchInfoModel>>() {
             @Override
@@ -346,6 +346,29 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onNext(List<BranchInfoModel> branchInfoModels) {
                 Log.d("MainActivity", "branchInfoModels.size():" + branchInfoModels.size());
+            }
+        });
+    }
+
+    public void addInterceptorParams() {
+        Retrofit2Utils retrofit2Utils=new Retrofit2Utils();
+        retrofit2Utils.addExtraInterceptor(new RequestInterceptor());
+        Map<String, String> maps=new HashMap<>();
+        UpdateApi api=retrofit2Utils.getRetrofit("http://appapi.iite.cc:8080/iteeth/").create(UpdateApi.class);
+        api.getUpdateModel(maps).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).unsubscribeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<UpdateModel>() {
+            @Override
+            public void onCompleted() {
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onNext(UpdateModel updateModel) {
+                Log.d("MainActivity", updateModel.getData().getTitle() + " " + updateModel.getData().getContent());
             }
         });
     }
