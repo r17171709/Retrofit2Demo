@@ -19,22 +19,38 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 public class Retrofit2Utils {
 
-    //okhttp build对象
-    private OkHttpClient.Builder okhttpBuilder;
-    //Retrofit build对象
-    private Retrofit.Builder retrofitBuilder;
-    //日志拦截器
-    private HttpLoggingInterceptor interceptor;
+    private static Retrofit2Utils instance;
 
-    public Retrofit2Utils() {
-        retrofitBuilder=new Retrofit.Builder().addCallAdapterFactory(RxJavaCallAdapterFactory.create());
-        interceptor=new HttpLoggingInterceptor();
-        interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
-        okhttpBuilder=new OkHttpClient.Builder()
-                .readTimeout(10, TimeUnit.SECONDS)
-                .writeTimeout(10, TimeUnit.SECONDS)
-                .connectTimeout(10, TimeUnit.SECONDS);
-        okhttpBuilder.addInterceptor(interceptor);
+    //okhttp build对象
+    private static OkHttpClient.Builder okhttpBuilder;
+    //Retrofit build对象
+    private static Retrofit.Builder retrofitBuilder;
+
+    private Retrofit2Utils() {
+
+    }
+
+    public static Retrofit2Utils getInstance() {
+        if (instance==null) {
+            synchronized (Retrofit2Utils.class) {
+                if (instance==null) {
+                    okhttpBuilder=new OkHttpClient.Builder()
+                            .readTimeout(10, TimeUnit.SECONDS)
+                            .writeTimeout(10, TimeUnit.SECONDS)
+                            .connectTimeout(10, TimeUnit.SECONDS);
+                    instance=new Retrofit2Utils();
+                }
+            }
+        }
+        return instance;
+    }
+
+    public void enableLog(boolean flag) {
+        if (flag) {
+            HttpLoggingInterceptor interceptor=new HttpLoggingInterceptor();
+            interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
+            okhttpBuilder.addInterceptor(interceptor);
+        }
     }
 
     /**
@@ -62,10 +78,12 @@ public class Retrofit2Utils {
     }
 
     public <T> Retrofit getListRetrofit(String baseUrl, Class<T> class_) {
+        retrofitBuilder=new Retrofit.Builder().addCallAdapterFactory(RxJavaCallAdapterFactory.create());
         return retrofitBuilder.addConverterFactory(ListGsonConverterFactory.create(class_)).client(okhttpBuilder.build()).baseUrl(baseUrl).build();
     }
 
     public Retrofit getRetrofit(String baseUrl) {
+        retrofitBuilder=new Retrofit.Builder().addCallAdapterFactory(RxJavaCallAdapterFactory.create());
         return retrofitBuilder.addConverterFactory(GsonConverterFactory.create()).client(okhttpBuilder.build()).baseUrl(baseUrl).build();
     }
 }
