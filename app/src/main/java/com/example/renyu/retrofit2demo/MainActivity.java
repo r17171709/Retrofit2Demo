@@ -1,10 +1,11 @@
 package com.example.renyu.retrofit2demo;
 
-import android.os.Environment;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 
 import com.example.renyu.retrofit2demo.common.CustomerRetryWhen;
+import com.example.renyu.retrofit2demo.common.HttpsUtils;
 import com.example.renyu.retrofit2demo.common.LifeCircleOperator;
 import com.example.renyu.retrofit2demo.common.ProgressRequestBody;
 import com.example.renyu.retrofit2demo.common.RequestInterceptor;
@@ -37,7 +38,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSession;
+
 import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -64,7 +70,7 @@ public class MainActivity extends BaseActivity {
         }
 
         //Get请求范例
-        getDemo();
+//        getDemo();
         //Post请求范例
 //        postDemo();
         //Get请求范例
@@ -80,6 +86,7 @@ public class MainActivity extends BaseActivity {
 //        getHomePageByBranchIdApi();
         //通过拦截器添加数据
 //        addInterceptorParams();
+        getHttpsTest();
     }
 
     private void commonRequest() {
@@ -370,5 +377,37 @@ public class MainActivity extends BaseActivity {
                 Log.d("MainActivity", updateModel.getData().getTitle() + " " + updateModel.getData().getContent());
             }
         });
+    }
+
+    public void getHttpsTest() {
+        OkHttpClient.Builder okhttpBuilder=new OkHttpClient.Builder()
+                .readTimeout(10, TimeUnit.SECONDS)
+                .writeTimeout(10, TimeUnit.SECONDS)
+                .connectTimeout(10, TimeUnit.SECONDS);
+        HttpsUtils.SSLParams sslParams = null;
+        try {
+            sslParams = HttpsUtils.getSslSocketFactory(new InputStream[]{getAssets().open("12306.cer")}, null, null);
+            OkHttpClient client=okhttpBuilder.hostnameVerifier(new HostnameVerifier() {
+                @Override
+                public boolean verify(String s, SSLSession sslSession) {
+                    return true;
+                }
+            }).sslSocketFactory(sslParams.sSLSocketFactory, sslParams.trustManager).build();
+            Request.Builder reqBuilder=new Request.Builder();
+            Request request=reqBuilder.url("https://kyfw.12306.cn/otn/leftTicket/init").build();
+            client.newCall(request).enqueue(new okhttp3.Callback() {
+                @Override
+                public void onFailure(okhttp3.Call call, IOException e) {
+                    e.printStackTrace();
+                }
+
+                @Override
+                public void onResponse(okhttp3.Call call, okhttp3.Response response) throws IOException {
+                    Log.d("MainActivity", response.body().string());
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
