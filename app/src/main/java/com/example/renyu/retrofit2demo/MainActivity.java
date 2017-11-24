@@ -6,28 +6,27 @@ import android.util.Log;
 
 import com.example.renyu.retrofit2demo.common.CustomerRetryWhen;
 import com.example.renyu.retrofit2demo.common.HttpsUtils;
+import com.example.renyu.retrofit2demo.common.KuaidiInterceptor1;
 import com.example.renyu.retrofit2demo.common.LifeCircleOperator;
 import com.example.renyu.retrofit2demo.common.ProgressRequestBody;
-import com.example.renyu.retrofit2demo.common.RequestInterceptor;
 import com.example.renyu.retrofit2demo.common.Retrofit2Utils;
 import com.example.renyu.retrofit2demo.impl.FileDownloadApi;
 import com.example.renyu.retrofit2demo.impl.FileUploadApi;
 import com.example.renyu.retrofit2demo.impl.GameApi;
 import com.example.renyu.retrofit2demo.impl.GankioApi;
 import com.example.renyu.retrofit2demo.impl.HomePageByBranchIdApi;
+import com.example.renyu.retrofit2demo.impl.KuaidiApi;
 import com.example.renyu.retrofit2demo.impl.MovieApi;
 import com.example.renyu.retrofit2demo.impl.SendMessageApi;
-import com.example.renyu.retrofit2demo.impl.UpdateApi;
-import com.example.renyu.retrofit2demo.impl.WeatherApi;
 import com.example.renyu.retrofit2demo.model.ActivityLifeCycle;
 import com.example.renyu.retrofit2demo.model.BranchInfoModel;
 import com.example.renyu.retrofit2demo.model.GameModel;
 import com.example.renyu.retrofit2demo.model.GankioModel;
+import com.example.renyu.retrofit2demo.model.KuaidiModel;
 import com.example.renyu.retrofit2demo.model.MovieModel;
 import com.example.renyu.retrofit2demo.model.MoviePostModel;
 import com.example.renyu.retrofit2demo.model.SendMessageModel;
-import com.example.renyu.retrofit2demo.model.UpdateModel;
-import com.example.renyu.retrofit2demo.model.WeatherModel;
+import com.readystatesoftware.chuck.ChuckInterceptor;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -85,8 +84,8 @@ public class MainActivity extends BaseActivity {
 //        commonRequest();
 //        getHomePageByBranchIdApi();
         //通过拦截器添加数据
-//        addInterceptorParams();
-        getHttpsTest();
+        addInterceptorParams();
+//        getHttpsTest();
     }
 
     private void commonRequest() {
@@ -115,15 +114,15 @@ public class MainActivity extends BaseActivity {
 
     private void getDemo() {
         Retrofit2Utils retrofit2Utils=Retrofit2Utils.getInstance();
-        retrofit2Utils.enableCache(false, this);
-        WeatherApi api = retrofit2Utils.getRetrofit("http://apis.baidu.com/apistore/").create(WeatherApi.class);
-        api.getWeatherModels("a7802d983b3d58ed6e70ed71bb0c7f14", "南京")
+//        retrofit2Utils.enableCache(this);
+        KuaidiApi api = retrofit2Utils.getRetrofit("http://www.kuaidi100.com/").create(KuaidiApi.class);
+        subscription = api.getKuaidiInfo("yunda", "3101449726243")
                 .retryWhen(new CustomerRetryWhen(3, 5)) //重连功能
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .unsubscribeOn(AndroidSchedulers.mainThread())
                 .lift(new LifeCircleOperator(this, ActivityLifeCycle.OnDestroy))
-                .subscribe(new Subscriber<WeatherModel>() {
+                .subscribe(new Subscriber<KuaidiModel>() {
                     @Override
                     public void onCompleted() {
 
@@ -135,9 +134,11 @@ public class MainActivity extends BaseActivity {
                     }
 
                     @Override
-                    public void onNext(WeatherModel weatherModel) {
+                    public void onNext(KuaidiModel model) {
                         if (!subscription.isUnsubscribed()) {
-                            Log.d("MainActivity", (weatherModel.getRetData().getCity() + " " + weatherModel.getRetData().getDate() + "-" + weatherModel.getRetData().getTime() + " " + weatherModel.getRetData().getWeather()));
+                            for (KuaidiModel.DataBean dataBean : model.getData()) {
+                                Log.d("MainActivity", dataBean.getContext());
+                            }
                         }
                     }
                 });
@@ -225,7 +226,6 @@ public class MainActivity extends BaseActivity {
 
     public void getGames() {
         Retrofit2Utils retrofit2Utils=Retrofit2Utils.getInstance();
-        retrofit2Utils.addExtraInterceptor(new RequestInterceptor());
         GameApi api = retrofit2Utils.getListRetrofit("http://nbaplus.sinaapp.com", GameModel.class).create(GameApi.class);
         api.getGames("2016-04-04")
                 .subscribeOn(Schedulers.io())
@@ -357,11 +357,22 @@ public class MainActivity extends BaseActivity {
     }
 
     public void addInterceptorParams() {
+//        HashMap<String, String> map = new HashMap<>();
+//        map.put("Hello", "World");
+
+        MoviePostModel postModel = new MoviePostModel();
+        postModel.setQuery("虎妈猫爸的最新剧集");
+        postModel.setResource("video_haiou");
+
         Retrofit2Utils retrofit2Utils=Retrofit2Utils.getInstance();
-        retrofit2Utils.addExtraInterceptor(new RequestInterceptor());
-        Map<String, String> maps=new HashMap<>();
-        UpdateApi api=retrofit2Utils.getRetrofit("http://appapi.iite.cc:8080/iteeth/").create(UpdateApi.class);
-        api.getUpdateModel(maps).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).unsubscribeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<UpdateModel>() {
+        retrofit2Utils.addExtraInterceptor(new KuaidiInterceptor1());
+        retrofit2Utils.addExtraInterceptor(new ChuckInterceptor(getApplicationContext()));
+        KuaidiApi api =retrofit2Utils.getRetrofit("http://www.kuaidi100.com/").create(KuaidiApi.class);
+        api.getKuaidiInfo(postModel)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .unsubscribeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<KuaidiModel>() {
             @Override
             public void onCompleted() {
 
@@ -373,8 +384,10 @@ public class MainActivity extends BaseActivity {
             }
 
             @Override
-            public void onNext(UpdateModel updateModel) {
-                Log.d("MainActivity", updateModel.getData().getTitle() + " " + updateModel.getData().getContent());
+            public void onNext(KuaidiModel model) {
+                for (KuaidiModel.DataBean dataBean : model.getData()) {
+                    Log.d("MainActivity", dataBean.getContext());
+                }
             }
         });
     }

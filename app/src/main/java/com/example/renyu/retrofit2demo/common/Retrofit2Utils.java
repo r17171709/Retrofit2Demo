@@ -55,17 +55,15 @@ public class Retrofit2Utils {
 
     /**
      * 设置缓存
-     * @param flag
+     * @param context
      */
-    public void enableCache(boolean flag, Context context) {
-        if (flag) {
-            //缓存拦截器
-            okhttpBuilder.addInterceptor(new CacheInterceptor(context))
-                    .addNetworkInterceptor(new CacheInterceptor(context))
-                    //设置缓存路径以及大小
-                    .cache(new Cache(new File(Environment.getExternalStorageDirectory().getPath() + "/retrofit2demo"), 1024 * 1024 * 100));
-            okhttpBuilder.interceptors().add(new CacheInterceptor(context));
-        }
+    public void enableCache(Context context) {
+        //缓存拦截器
+        okhttpBuilder.addInterceptor(new CacheInterceptor(context))
+                .addNetworkInterceptor(new CacheInterceptor(context))
+                //设置缓存路径以及大小
+                .cache(new Cache(new File(Environment.getExternalStorageDirectory().getPath() + "/retrofit2demo"), 1024 * 1024 * 100));
+        okhttpBuilder.interceptors().add(new CacheInterceptor(context));
     }
 
     /**
